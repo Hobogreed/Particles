@@ -1,0 +1,145 @@
+//  SandGun by Charles Fitch
+//  Left mouse to shoot
+//  Right mouse to move
+
+Sand[] s=new Sand[200000];
+float gunX,gunY;
+int curX,curY,shots,ammo;
+boolean mouseLeft,mouseRight;
+
+void setup(){
+  size(500,500);
+  //frameRate(4500);//  because...why not ?
+  noCursor();
+  noSmooth();
+  for(int i=0;i<s.length;i++){
+      s[i]=new Sand(i); 
+  }
+  gunX=250;gunY=250;ammo=200000;
+  background(#000000);border();noStroke();
+}
+
+void draw(){
+  gun();
+  if(mouseRight){movPos();}
+  if(mouseLeft){s[shots].loadGun();}
+  update();
+  
+  }
+
+void update(){
+  for(int i=0;i<shots;i++){
+    s[i].check();
+  }
+ 
+}
+
+void gun(){
+  fill(0xffcfffff);//   gun color      
+  ellipse(gunX,gunY,8,8);
+}
+
+void border(){
+  stroke(0xffefffff);//  vertical color
+  line(0,0,0,499);
+  line(499,0,499,499);
+  
+  stroke(0xffdfffff);//  horizontal color
+  line(0,0,499,0);
+  line(0,499,499,499);
+  noStroke();
+}
+
+void mousePressed(){
+  //print("mousePressed");
+  if(mouseButton==RIGHT){mouseRight=true;}
+  if(mouseButton==LEFT){mouseLeft=true;}
+  
+  
+}
+
+void mouseReleased() {
+  if (mouseButton == LEFT) {mouseLeft=false;}
+  
+}
+
+void mouseMoved() {
+  //print("mouseMoved");
+  
+  border();
+  fill(#000000);            
+  ellipse(curX,curY,4,4);
+  curX=mouseX;curY=mouseY;
+  fill(0xffbfffff);            
+  ellipse(curX,curY,4,4);
+  
+}
+
+class Sand{
+  float X,Y,vX,vY;
+  // play around with G and E
+  float G=0.00741;float E=-.89595;
+  int cID;
+  
+  Sand(int i){cID=0xffffffff-i;}
+    
+  void check(){
+    float destX=X+vX;
+    float destY=vY+G;
+    if(destY>1){destY=1;}// vel limited to 1 max
+    destY=Y+destY;
+    int destColor=get(int(destX),int(destY));
+    if (destColor==cID){update();return;}
+    if (destColor==#000000){
+         erase();update();display();return;}
+    if (destColor==0xffcfffff){
+         erase();update();display();return;}
+    if (destColor==0xffbfffff){
+         erase();update();display();return;}
+    if (destColor==0xffefffff){vX*=E;return;}
+    if (destColor==0xffdfffff){vY*=E;return;}
+    int num2=abs(0xffffffff-destColor);
+    float vXTemp=s[num2].vX;
+    float vYTemp=s[num2].vY;
+    s[num2].vX=vX;s[num2].vY=vY;
+    vX=vXTemp;vY=vYTemp;
+  }
+  
+  void display(){
+    set(int(X),int(Y),cID);
+  } 
+  
+  void erase(){
+   set(int(X),int(Y),#000000);
+  }
+  
+  void update(){
+    vY+=G;
+    if(vY>1){vY=1;}
+    if(vY<-1){vY=-1;}
+    X+=vX;Y+=vY;
+  }
+    
+  void loadGun(){
+    vX=mouseX-gunX;vY=mouseY-gunY;
+    float m=sqrt(sq(vX)+sq(vY));
+    vX/=m;vY/=m;
+    X=gunX;Y=gunY;
+    shots++;
+    if(shots>ammo){shots=ammo;}
+    mouseMoved();
+  }
+}
+
+int gunDestX,gunDestY=0;
+void movPos(){
+  if(mouseButton==RIGHT){
+     gunDestX=curX;gunDestY=curY;}
+  float dX=gunDestX-gunX;float dY=gunDestY-gunY;
+  float m=sqrt(sq(dX)+sq(dY));
+  dX/=m;dY/=m;
+  fill(#000000);ellipse(gunX,gunY,8,8);
+  gunX+=dX;gunY+=dY;
+  fill(0xffcfffff);ellipse(gunX,gunY,8,8);
+  mouseMoved();
+}  
